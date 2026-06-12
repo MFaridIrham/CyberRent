@@ -1,775 +1,403 @@
 # UTS APB - RANCANGAN DESAIN APLIKASI
 
-## 📋 Daftar Isi
-1. [Arsitektur UI](#arsitektur-ui)
-2. [Widget Tree](#widget-tree)
-3. [Prinsip Layouting](#prinsip-layouting)
-4. [Alur Navigasi](#alur-navigasi)
-5. [State Management](#state-management)
-6. [Design System](#design-system)
+## Daftar Isi
+1. Arsitektur UI
+2. Widget Tree
+3. Prinsip Layouting
+4. Alur Navigasi
+5. State Management
+6. Design System
 
 ---
 
-## 🏗️ Arsitektur UI
+## Arsitektur UI
 
 ### Struktur Aplikasi
 
-```
-MyApp (MaterialApp)
-│
-├── Theme: Dark Mode (0xFF121212)
-│
-└── HomePage (Entry Point)
-    │
-    ├── [LAYER 1] AppBar dengan 2 Action Button
-    │   ├── Leading: Balance Button → BalancePage
-    │   └── Actions: Cart Total (ValueListenableBuilder) → CartPage
-    │
-    └── [LAYER 2-7] Body Content (7 Sections)
-        ├── Section 1: Welcome Banner (Gradient)
-        ├── Section 2: Promo Banner (Tap → PromoPage)
-        ├── Section 3: Service Menu (GridView 2x2)
-        │   ├── Pilih PC → DetailPCPage
-        │   ├── Snack → OrderFoodPage
-        │   ├── Profil → ProfilePage
-        │   └── Bantuan (Placeholder)
-        ├── Section 4: Info Features (3 Items)
-        ├── Section 5: Spacing
-        └── Navigation to Other Pages:
-            ├── DetailPCPage (StatefulWidget)
-            ├── OrderFoodPage (StatefulWidget)
-            ├── ProfilePage (StatelessWidget)
-            ├── PromoPage (StatelessWidget)
-            ├── CartPage (StatelessWidget)
-            └── BalancePage (StatelessWidget)
-```
+Aplikasi dibangun di atas `MyApp` (MaterialApp) dengan tema Dark Mode berwarna `0xFF121212`. Titik masuk aplikasi adalah `HomePage`, yang terdiri dari dua bagian utama:
+
+**Layer 1 - AppBar** memiliki dua tombol aksi:
+- Bagian leading berupa tombol Saldo yang mengarah ke BalancePage
+- Bagian actions berupa Cart Total (menggunakan ValueListenableBuilder) yang mengarah ke CartPage
+
+**Layer 2-7 - Body Content** terdiri dari 7 bagian:
+- Section 1: Banner Selamat Datang (dengan gradient)
+- Section 2: Banner Promo (tap mengarah ke PromoPage)
+- Section 3: Menu Layanan berupa GridView 2x2, meliputi: Pilih PC (ke DetailPCPage), Snack (ke OrderFoodPage), Profil (ke ProfilePage), dan Bantuan (placeholder)
+- Section 4: Info Fitur (3 item)
+- Section 5: Spacing
+- Navigasi ke halaman lain: DetailPCPage (StatefulWidget), OrderFoodPage (StatefulWidget), ProfilePage (StatelessWidget), PromoPage (StatelessWidget), CartPage (StatelessWidget), dan BalancePage (StatelessWidget)
 
 ### Hubungan Antar Page
 
-```
-HomePage (Hub)
-    ↓
-    ├──→ DetailPCPage (Pilih PC Rental)
-    │        ↓
-    │        └──→ Cart.addItem()
-    │
-    ├──→ OrderFoodPage (Pesan Snack)
-    │        ↓
-    │        └──→ Cart.addItem()
-    │
-    ├──→ ProfilePage (Profile Member)
-    │        ↓
-    │        └── Placeholder Actions
-    │
-    ├──→ CartPage (Keranjang)
-    │        ↓
-    │        └── Checkout → Cart.clear()
-    │
-    ├──→ BalancePage (Saldo)
-    │        ↓
-    │        └── Transaction History
-    │
-    └──→ PromoPage (Promosi)
-             ↓
-             └── Promo List
-```
+HomePage berfungsi sebagai hub yang menghubungkan ke berbagai halaman lain:
+
+- **DetailPCPage** (Pilih PC Rental) → memanggil Cart.addItem()
+- **OrderFoodPage** (Pesan Snack) → memanggil Cart.addItem()
+- **ProfilePage** (Profile Member) → berisi aksi-aksi placeholder
+- **CartPage** (Keranjang) → tombol Checkout memanggil Cart.clear()
+- **BalancePage** (Saldo) → menampilkan riwayat transaksi
+- **PromoPage** (Promosi) → menampilkan daftar promo
 
 ---
 
-## 🌳 Widget Tree
+## Widget Tree
 
 ### HomePage Widget Tree
 
-```
-HomePage (StatefulWidget)
-│
-└── Scaffold
-    │
-    ├── AppBar (backgroundColor: transparent, elevation: 0)
-    │   │
-    │   ├── leading: GestureDetector
-    │   │   └── Column
-    │   │       ├── Text("Saldo")
-    │   │       └── Text("Rp 100K")
-    │   │       [onTap] → Navigator.push(BalancePage)
-    │   │
-    │   └── actions: [ValueListenableBuilder]
-    │       └── GestureDetector
-    │           └── Column (listens to Cart.totalNotifier)
-    │               ├── Text("Keranjang")
-    │               └── Text("Rp ${value}")
-    │               [onTap] → Navigator.push(CartPage)
-    │
-    └── body: SingleChildScrollView
-        └── Column
-            │
-            ├── [Section 1] Welcome Container
-            │   ├── gradient: LinearGradient(purpleAccent → blueAccent)
-            │   ├── Icon(fastfood, size: 80)
-            │   ├── Text("CyberRent Cafe")
-            │   └── Text("Sewa PC & Makan Snack")
-            │
-            ├── SizedBox(height: 16)
-            │
-            ├── [Section 2] Promo Banner
-            │   ├── Container(gradient: cyan)
-            │   ├── GestureDetector
-            │   └── Text("DISKON 50% JAM KE-5")
-            │       [onTap] → Navigator.push(PromoPage)
-            │
-            ├── SizedBox(height: 16)
-            │
-            ├── [Section 3] Service Menu (GridView 2x2)
-            │   ├── _buildMenuButton(Pilih PC, purple)
-            │   │   └── Container(gradient) + Icon + Text
-            │   │       [onTap] → Navigator.push(DetailPCPage)
-            │   │
-            │   ├── _buildMenuButton(Snack, orange)
-            │   │   [onTap] → Navigator.push(OrderFoodPage)
-            │   │
-            │   ├── _buildMenuButton(Profil, cyan)
-            │   │   [onTap] → Navigator.push(ProfilePage)
-            │   │
-            │   └── _buildMenuButton(Bantuan, green)
-            │       [onTap] → Placeholder
-            │
-            ├── SizedBox(height: 16)
-            │
-            ├── [Section 4] Info Features (Column)
-            │   ├── _buildInfoItem(⚡, Performa, Desc)
-            │   │   └── Row
-            │   │       ├── Text("⚡") [size: 32]
-            │   │       └── Column(title, description)
-            │   │
-            │   ├── _buildInfoItem(💰, Harga, Desc)
-            │   │
-            │   └── _buildInfoItem(🎮, Lengkap, Desc)
-            │
-            └── SizedBox(height: 16)
-```
+HomePage merupakan StatefulWidget berbentuk Scaffold dengan komponen:
+
+**AppBar** (backgroundColor transparan, elevation 0):
+- Leading berupa GestureDetector yang berisi Column dengan teks "Saldo" dan "Rp 100K"; ketika ditekan akan melakukan Navigator.push ke BalancePage
+- Actions berupa ValueListenableBuilder yang berisi GestureDetector dan Column (memantau Cart.totalNotifier) dengan teks "Keranjang" dan nilai total; ketika ditekan akan melakukan Navigator.push ke CartPage
+
+**Body** berupa SingleChildScrollView yang membungkus Column dengan isi:
+
+1. **Section 1 - Welcome Container**: memiliki gradient (purpleAccent ke blueAccent), Icon fastfood berukuran 80, teks "CyberRent Cafe", dan teks "Sewa PC & Makan Snack"
+
+2. **SizedBox** dengan tinggi 16
+
+3. **Section 2 - Promo Banner**: Container dengan gradient cyan, GestureDetector, dan teks "DISKON 50% JAM KE-5"; ketika ditekan akan melakukan Navigator.push ke PromoPage
+
+4. **SizedBox** dengan tinggi 16
+
+5. **Section 3 - Service Menu** (GridView 2x2):
+   - `_buildMenuButton` Pilih PC (warna purple), berisi Container bergradient, Icon, dan Text; ketika ditekan ke DetailPCPage
+   - `_buildMenuButton` Snack (warna orange); ketika ditekan ke OrderFoodPage
+   - `_buildMenuButton` Profil (warna cyan); ketika ditekan ke ProfilePage
+   - `_buildMenuButton` Bantuan (warna green); ketika ditekan berupa placeholder
+
+6. **SizedBox** dengan tinggi 16
+
+7. **Section 4 - Info Features** (Column):
+   - `_buildInfoItem` (⚡, Performa, Deskripsi) berupa Row yang berisi Text "⚡" (ukuran 32) dan Column (judul, deskripsi)
+   - `_buildInfoItem` (💰, Harga, Deskripsi)
+   - `_buildInfoItem` (🎮, Lengkap, Deskripsi)
+
+8. **SizedBox** dengan tinggi 16
 
 ### DetailPCPage Widget Tree
 
-```
-DetailPCPage (StatefulWidget)
-│   state: selectedPC, hours, promoCode, promoController
-│
-└── Scaffold
-    │
-    ├── AppBar (transparent)
-    │   └── title: "Pilih PC"
-    │
-    └── body: SingleChildScrollView
-        └── Column
-            │
-            ├── Header Container
-            │   ├── gradient: purpleAccent → blueAccent
-            │   ├── Icon(computer, size: 80)
-            │   ├── Text("Pilih PC Gaming")
-            │   └── Text("Sewa PC impian Anda")
-            │
-            ├── PC Options Column
-            │   └── _buildPCOption(pc) × 3
-            │       ├── GestureDetector
-            │       │   [onTap] → setState(selectedPC = pc['name'])
-            │       │
-            │       └── Container
-            │           └── Row
-            │               ├── Image.asset(pc['image'])
-            │               │   ├── width: 80, height: 80
-            │               │   ├── borderRadius: 10
-            │               │   └── fit: BoxFit.cover
-            │               │
-            │               ├── SizedBox(width: 16)
-            │               │
-            │               ├── Expanded Column
-            │               │   ├── Text(pc['name'])
-            │               │   ├── Text(pc['specs'])
-            │               │   └── Text("Rp ${pc['price']}/jam")
-            │               │
-            │               └── if isSelected:
-            │                   └── Icon(check_circle, cyan)
-            │
-            └── if selectedPC != null:
-                ├── SizedBox(height: 16)
-                │
-                ├── Durasi Section
-                │   ├── Text("Durasi (Jam): $hours")
-                │   └── Slider
-                │       ├── value: hours.toDouble()
-                │       ├── min: 1, max: 10
-                │       ├── activeColor: cyanAccent
-                │       └── onChanged → setState(hours = value)
-                │
-                ├── SizedBox(height: 16)
-                │
-                ├── Kode Promo Label
-                │   └── Text("Kode Promo")
-                │
-                ├── TextField
-                │   ├── controller: promoController
-                │   ├── filled: true
-                │   ├── fillColor: 0xFF2A2A3A
-                │   ├── border: cyan (0.3 opacity)
-                │   ├── focusedBorder: cyan (2px)
-                │   ├── hintText: "Masukkan kode promo (opsional)"
-                │   └── prefixIcon: local_offer (cyan)
-                │
-                ├── SizedBox(height: 16)
-                │
-                └── ElevatedButton (Tambah ke Keranjang)
-                    ├── backgroundColor: cyanAccent
-                    ├── padding: horizontal 50, vertical 15
-                    ├── [onPressed]
-                    │   ├── Cart.addItem()
-                    │   ├── ScaffoldMessenger.showSnackBar()
-                    │   ├── promoController.clear()
-                    │   └── setState(promoCode = "")
-                    └── child: Text("Tambah ke Keranjang", black)
-```
+DetailPCPage merupakan StatefulWidget dengan state: selectedPC, hours, promoCode, dan promoController. Strukturnya berupa Scaffold dengan:
+
+**AppBar** (transparan) bertuliskan "Pilih PC"
+
+**Body** berupa SingleChildScrollView yang membungkus Column dengan isi:
+
+1. **Header Container** dengan gradient (purpleAccent ke blueAccent), Icon computer berukuran 80, teks "Pilih PC Gaming", dan teks "Sewa PC impian Anda"
+
+2. **PC Options Column** berisi `_buildPCOption(pc)` sebanyak 3 kali, masing-masing berupa:
+   - GestureDetector yang ketika ditekan akan melakukan setState(selectedPC = pc['name'])
+   - Container berisi Row yang terdiri dari: Image.asset(pc['image']) dengan ukuran 80x80, borderRadius 10, dan fit BoxFit.cover; SizedBox lebar 16; Expanded Column dengan teks nama PC, spesifikasi, dan harga per jam; serta Icon check_circle (warna cyan) jika item terpilih
+
+3. **Jika selectedPC sudah dipilih**, ditampilkan:
+   - SizedBox tinggi 16
+   - **Durasi Section**: teks "Durasi (Jam): $hours" dan Slider dengan value hours, rentang 1-10, activeColor cyanAccent, dan onChanged memanggil setState(hours = value)
+   - SizedBox tinggi 16
+   - Label "Kode Promo"
+   - TextField dengan controller promoController, filled true, fillColor 0xFF2A2A3A, border cyan opacity 0.3, focusedBorder cyan 2px, hintText "Masukkan kode promo (opsional)", dan prefixIcon local_offer (cyan)
+   - SizedBox tinggi 16
+   - ElevatedButton "Tambah ke Keranjang" dengan backgroundColor cyanAccent, padding horizontal 50 vertical 15; ketika ditekan akan memanggil Cart.addItem(), menampilkan ScaffoldMessenger.showSnackBar(), promoController.clear(), dan setState(promoCode = "")
 
 ### OrderFoodPage Widget Tree
 
-```
-OrderFoodPage (StatefulWidget)
-│   state: _quantities: Map<String, int>
-│
-└── Scaffold
-    │
-    ├── AppBar (transparent)
-    │   └── title: "Snack Order"
-    │
-    └── body: SingleChildScrollView
-        └── Column
-            │
-            ├── Header Container
-            │   ├── gradient: orangeAccent → redAccent
-            │   ├── Icon(fastfood, size: 80)
-            │   ├── Text("Menu Snack")
-            │   └── Text("Pilih snack favorit Anda")
-            │
-            ├── GridView.builder (2x2)
-            │   │
-            │   └── _buildFoodItem(item) × 4
-            │       │   [items: Indomie, Nasi Goreng, Ayam Bakar, Es Teh]
-            │       │
-            │       └── Container
-            │           └── Column
-            │               │
-            │               ├── Image Container
-            │               │   ├── width: 100, height: 100
-            │               │   ├── borderRadius: 15
-            │               │   └── Image.asset(item['image'])
-            │               │       ├── indomie_spesial.png
-            │               │       ├── nasi_goreng.png
-            │               │       ├── ayam_bakar.png
-            │               │       └── es_teh.png
-            │               │
-            │               ├── SizedBox(height: 8)
-            │               │
-            │               ├── Text(name, bold)
-            │               │
-            │               ├── Text("Rp ${price}")
-            │               │
-            │               ├── SizedBox(height: 8)
-            │               │
-            │               ├── Quantity Counter Row
-            │               │   ├── IconButton(remove)
-            │               │   │   └── setState(qty-1)
-            │               │   ├── Text(quantity)
-            │               │   └── IconButton(add)
-            │               │       └── setState(qty+1)
-            │               │
-            │               └── ElevatedButton (Pesan)
-            │                   ├── backgroundColor: cyanAccent
-            │                   ├── [onPressed] if quantity > 0:
-            │                   │   ├── Cart.addItem()
-            │                   │   ├── setState(qty = 0)
-            │                   │   └── showSnackBar()
-            │                   └── child: Text("Pesan", black)
-            │
-            └── SizedBox(height: 16)
-```
+OrderFoodPage merupakan StatefulWidget dengan state berupa `_quantities: Map<String, int>`. Strukturnya berupa Scaffold dengan:
+
+**AppBar** (transparan) bertuliskan "Snack Order"
+
+**Body** berupa SingleChildScrollView yang membungkus Column dengan isi:
+
+1. **Header Container** dengan gradient (orangeAccent ke redAccent), Icon fastfood berukuran 80, teks "Menu Snack", dan teks "Pilih snack favorit Anda"
+
+2. **GridView.builder** (2x2) berisi `_buildFoodItem(item)` sebanyak 4 kali, dengan item: Indomie, Nasi Goreng, Ayam Bakar, dan Es Teh. Setiap item berupa Container dengan Column yang terdiri dari:
+   - Image Container ukuran 100x100, borderRadius 15, berisi Image.asset (indomie_spesial.png, nasi_goreng.png, ayam_bakar.png, atau es_teh.png)
+   - SizedBox tinggi 8
+   - Teks nama (bold)
+   - Teks harga
+   - SizedBox tinggi 8
+   - Quantity Counter Row: IconButton remove (memanggil setState qty-1), Text quantity, IconButton add (memanggil setState qty+1)
+   - ElevatedButton "Pesan" dengan backgroundColor cyanAccent; jika quantity > 0, ketika ditekan akan memanggil Cart.addItem(), setState(qty = 0), dan showSnackBar()
+
+3. **SizedBox** dengan tinggi 16
 
 ### CartPage Widget Tree
 
-```
-CartPage (StatelessWidget)
-│
-└── Scaffold
-    │
-    ├── AppBar (transparent)
-    │   └── title: "Keranjang"
-    │
-    └── body: Column
-        │
-        ├── if Cart.items.isEmpty:
-        │   └── Expanded
-        │       └── Center
-        │           └── Column
-        │               ├── Icon(shopping_cart_outlined)
-        │               └── Text("Keranjang kosong")
-        │
-        └── else:
-            │
-            ├── Expanded
-            │   └── ListView
-            │       └── CartItem Card × N
-            │           └── Container
-            │               ├── padding: 16
-            │               ├── margin: EdgeInsets.symmetric
-            │               ├── borderRadius: 15
-            │               └── Column
-            │                   ├── Row
-            │                   │   ├── Text(item.name, bold)
-            │                   │   ├── Spacer()
-            │                   │   └── Text("${item.quantity}x", cyan)
-            │                   │
-            │                   ├── SizedBox(height: 8)
-            │                   │
-            │                   └── Row
-            │                       ├── Text("Rp ${item.price}")
-            │                       ├── Spacer()
-            │                       └── Text("Rp ${item.price * item.quantity}", green)
-            │
-            ├── Divider
-            │
-            └── Bottom Section
-                ├── Padding
-                │   └── Column
-                │       ├── Row
-                │       │   ├── Text("Total", bold)
-                │       │   ├── Spacer()
-                │       │   └── Text("Rp ${Cart.getTotal()}", cyan, bold)
-                │       │
-                │       ├── SizedBox(height: 16)
-                │       │
-                │       └── ElevatedButton (Checkout)
-                │           ├── backgroundColor: cyanAccent
-                │           ├── width: full
-                │           ├── [onPressed]
-                │           │   ├── Cart.clear()
-                │           │   ├── showSnackBar("Checkout berhasil")
-                │           │   └── Navigator.pop()
-                │           └── child: Text("Checkout", black)
-```
+CartPage merupakan StatelessWidget berbentuk Scaffold dengan:
+
+**AppBar** (transparan) bertuliskan "Keranjang"
+
+**Body** berupa Column dengan kondisi:
+
+- **Jika Cart.items kosong**: ditampilkan Expanded yang berisi Center dan Column dengan Icon shopping_cart_outlined serta teks "Keranjang kosong"
+
+- **Jika tidak kosong**:
+  - Expanded berisi ListView yang menampilkan Card CartItem sebanyak N, masing-masing berupa Container dengan padding 16, margin EdgeInsets.symmetric, borderRadius 15, dan Column berisi:
+    - Row dengan teks nama item (bold), Spacer, dan teks "${quantity}x" (warna cyan)
+    - SizedBox tinggi 8
+    - Row dengan teks harga satuan, Spacer, dan teks total harga item (warna green)
+  - Divider
+  - Bottom Section berupa Padding dan Column berisi:
+    - Row dengan teks "Total" (bold), Spacer, dan teks total harga keseluruhan (warna cyan, bold)
+    - SizedBox tinggi 16
+    - ElevatedButton "Checkout" dengan backgroundColor cyanAccent, lebar penuh; ketika ditekan akan memanggil Cart.clear(), menampilkan showSnackBar "Checkout berhasil", dan Navigator.pop()
 
 ### ProfilePage Widget Tree
 
-```
-ProfilePage (StatelessWidget)
-│
-└── Scaffold
-    │
-    ├── AppBar (transparent)
-    │   └── title: "Profil"
-    │
-    └── body: SingleChildScrollView
-        └── Column
-            │
-            ├── Header Card
-            │   ├── Container
-            │   ├── gradient: cyanAccent → blueAccent
-            │   ├── borderRadius: 20
-            │   └── Column
-            │       │
-            │       ├── CircleAvatar
-            │       │   ├── radius: 50
-            │       │   ├── backgroundImage: AssetImage('assets/member_avatar.png')
-            │       │   └── backgroundColor: white
-            │       │
-            │       ├── SizedBox(height: 10)
-            │       │
-            │       ├── Text("Nama Member", bold, size: 24)
-            │       │
-            │       ├── Text("member@example.com")
-            │       │
-            │       ├── SizedBox(height: 10)
-            │       │
-            │       └── Text("Level: Gold | Poin: 1500")
-            │
-            ├── SizedBox(height: 16)
-            │
-            └── Profile Options GridView (2x3)
-                │
-                ├── _buildProfileOption(Login)
-                │   └── Container + GestureDetector
-                │       ├── tinted icon container
-                │       ├── Text("Login")
-                │       └── [onTap] → showSnackBar("Fitur Login...")
-                │
-                ├── _buildProfileOption(Register)
-                │
-                ├── _buildProfileOption(Edit Profil)
-                │
-                ├── _buildProfileOption(Riwayat)
-                │
-                ├── _buildProfileOption(Pengaturan)
-                │
-                └── _buildProfileOption(Logout)
-```
+ProfilePage merupakan StatelessWidget berbentuk Scaffold dengan:
+
+**AppBar** (transparan) bertuliskan "Profil"
+
+**Body** berupa SingleChildScrollView yang membungkus Column dengan isi:
+
+1. **Header Card** berupa Container dengan gradient (cyanAccent ke blueAccent), borderRadius 20, dan Column berisi:
+   - CircleAvatar dengan radius 50, backgroundImage AssetImage('assets/member_avatar.png'), backgroundColor white
+   - SizedBox tinggi 10
+   - Teks "Nama Member" (bold, ukuran 24)
+   - Teks "member@example.com"
+   - SizedBox tinggi 10
+   - Teks "Level: Gold | Poin: 1500"
+
+2. **SizedBox** tinggi 16
+
+3. **Profile Options GridView** (2x3) berisi `_buildProfileOption` untuk masing-masing opsi: Login, Register, Edit Profil, Riwayat, Pengaturan, dan Logout. Setiap opsi berupa Container dan GestureDetector dengan icon bertinta, teks nama opsi, dan ketika ditekan akan menampilkan showSnackBar "Fitur Login..." (untuk contoh Login)
 
 ### BalancePage Widget Tree
 
-```
-BalancePage (StatelessWidget)
-│
-└── Scaffold
-    │
-    ├── AppBar (transparent)
-    │   └── title: "Saldo"
-    │
-    └── body: SingleChildScrollView
-        └── Column
-            │
-            ├── Balance Card
-            │   ├── Container
-            │   ├── gradient: cyanAccent → blueAccent
-            │   ├── borderRadius: 20
-            │   └── Column
-            │       ├── Text("Saldo Anda")
-            │       ├── SizedBox(height: 16)
-            │       ├── Text("Rp 100.000", bold, size: 32, cyan)
-            │       ├── SizedBox(height: 16)
-            │       └── ElevatedButton ("Top Up via QRIS")
-            │           ├── backgroundColor: white
-            │           └── [onPressed] → placeholder
-            │
-            ├── SizedBox(height: 20)
-            │
-            ├── Padding
-            │   └── Text("Riwayat Transaksi", bold)
-            │
-            └── Transaction List (ListView)
-                │
-                └── _buildHistoryItem × 4
-                    │   [Transaksi: Sewa PC, Indomie, Top Up]
-                    │
-                    └── Container
-                        └── Row
-                            ├── Column
-                            │   ├── Text(title, bold)
-                            │   └── Text(date, small)
-                            │
-                            ├── Spacer()
-                            │
-                            └── Text(amount)
-                                ├── green: +Rp (Top Up)
-                                └── red: -Rp (Spending)
-```
+BalancePage merupakan StatelessWidget berbentuk Scaffold dengan:
+
+**AppBar** (transparan) bertuliskan "Saldo"
+
+**Body** berupa SingleChildScrollView yang membungkus Column dengan isi:
+
+1. **Balance Card** berupa Container dengan gradient (cyanAccent ke blueAccent), borderRadius 20, dan Column berisi:
+   - Teks "Saldo Anda"
+   - SizedBox tinggi 16
+   - Teks "Rp 100.000" (bold, ukuran 32, warna cyan)
+   - SizedBox tinggi 16
+   - ElevatedButton "Top Up via QRIS" dengan backgroundColor white; ketika ditekan berupa placeholder
+
+2. **SizedBox** tinggi 20
+
+3. **Padding** berisi teks "Riwayat Transaksi" (bold)
+
+4. **Transaction List** (ListView) berisi `_buildHistoryItem` sebanyak 4 kali untuk transaksi: Sewa PC, Indomie, dan Top Up. Setiap item berupa Container dengan Row berisi:
+   - Column dengan teks judul (bold) dan teks tanggal (kecil)
+   - Spacer
+   - Teks jumlah, dengan warna green untuk Top Up (+Rp) dan warna red untuk pengeluaran (-Rp)
 
 ---
 
-## 🎨 Prinsip Layouting
+## Prinsip Layouting
 
 ### 1. Dark Mode Design System
 
 **Palet Warna Utama:**
-- **Background Utama**: `#121212` (Scaffold background)
-- **Background Card**: `#1E1E26` (Container, Card)
-- **Accent Warna**: `#00FFFF` (Cyan - Button, Icon, Border)
-- **Text Primary**: `#FFFFFF`
-- **Text Secondary**: `#FFFFFF70` (70% opacity)
+- Background Utama: `#121212` (Scaffold background)
+- Background Card: `#1E1E26` (Container, Card)
+- Accent Warna: `#00FFFF` (Cyan - Button, Icon, Border)
+- Text Primary: `#FFFFFF`
+- Text Secondary: `#FFFFFF70` (opacity 70%)
 
 **Gradient Styling:**
-- **Purple (PC Rental)**: `purpleAccent → blueAccent` (TL to BR)
-- **Orange (Food/Snack)**: `orangeAccent → redAccent` (TL to BR)
-- **Cyan (Profile/Balance)**: `cyanAccent → blueAccent` (TL to BR)
+- Purple (PC Rental): `purpleAccent → blueAccent` (kiri atas ke kanan bawah)
+- Orange (Food/Snack): `orangeAccent → redAccent` (kiri atas ke kanan bawah)
+- Cyan (Profile/Balance): `cyanAccent → blueAccent` (kiri atas ke kanan bawah)
 
 ### 2. Responsive Grid Layout
 
-**GridView 2x2 (Home Menu):**
-```
-┌─────────────────────────────┐
-│  Pilih PC  │    Snack      │
-├─────────────────────────────┤
-│  Profil    │   Bantuan     │
-└─────────────────────────────┘
-- CrossAxisCount: 2
-- CrossAxisSpacing: 10
-- MainAxisSpacing: 10
-- childAspectRatio: 1.0
-```
+**GridView 2x2 (Menu Home):**
+Susunan 2 kolom: baris pertama berisi Pilih PC dan Snack, baris kedua berisi Profil dan Bantuan. Pengaturan: CrossAxisCount 2, CrossAxisSpacing 10, MainAxisSpacing 10, childAspectRatio 1.0
 
 **GridView 2x3 (Profile Options):**
-```
-┌──────────────────────────────────┐
-│  Login  │  Register  │ Edit Profil│
-├──────────────────────────────────┤
-│ Riwayat │ Pengaturan │  Logout   │
-└──────────────────────────────────┘
-```
+Susunan 3 kolom 2 baris: baris pertama Login, Register, Edit Profil; baris kedua Riwayat, Pengaturan, Logout
 
 **GridView 2x2 (Food Items):**
-```
-┌──────────────────────────┐
-│ Indomie │ Nasi Goreng   │
-├──────────────────────────┤
-│ Ayam Bakar │ Es Teh      │
-└──────────────────────────┘
-```
+Susunan 2 kolom: baris pertama Indomie dan Nasi Goreng, baris kedua Ayam Bakar dan Es Teh
 
 ### 3. Spacing & Padding System
 
-| Level | Pixel | Usage |
-|-------|-------|-------|
-| tiny | 4px | Minor spacing |
-| small | 8px | Between elements |
-| medium | 16px | Standard padding/margin |
-| large | 20px | Section padding |
-| xlarge | 24px | Major section gaps |
+| Level | Pixel | Penggunaan |
+|-------|-------|-----------|
+| tiny | 4px | Spacing kecil |
+| small | 8px | Antar elemen |
+| medium | 16px | Padding/margin standar |
+| large | 20px | Padding section |
+| xlarge | 24px | Jarak antar section besar |
 
 **Konsistensi:**
-- Horizontal padding: 16px (EdgeInsets.symmetric(horizontal: 16))
-- Vertical margin antar section: 16px (SizedBox(height: 16))
-- Card margin: 16px all sides
+- Padding horizontal: 16px (EdgeInsets.symmetric(horizontal: 16))
+- Margin vertikal antar section: 16px (SizedBox(height: 16))
+- Margin card: 16px di semua sisi
 
 ### 4. Card & Container Design
 
-**Border Radius:** `15px` (standard), `20px` (header sections), `10px` (images)
+**Border Radius:** 15px (standar), 20px (header section), 10px (gambar)
 
 **Box Shadow:**
-```dart
-BoxShadow(
-  color: Colors.black12,
-  blurRadius: 5,
-  offset: Offset(0, 2)
-)
-```
+Menggunakan BoxShadow dengan warna black12, blurRadius 5, dan offset (0, 2)
 
 **Interactive State:**
-- Normal: `Color(0xFF1E1E26)` background
-- Selected/Hover: `Colors.cyanAccent.withOpacity(0.2)` + cyan border
+- Normal: background warna `Color(0xFF1E1E26)`
+- Selected/Hover: `Colors.cyanAccent.withOpacity(0.2)` dengan border cyan
 
 ### 5. Typography System
 
-| Level | Font Size | Weight | Usage |
-|-------|-----------|--------|-------|
-| Headline | 24px | Bold | Page title, section header |
-| Title | 18px | Bold | Card title, subtitle |
-| Subtitle | 16px | Normal | Body text, description |
-| Caption | 14px | Normal | Secondary text, hint |
-| Small | 12px | Normal | Metadata, timestamps |
+| Level | Ukuran Font | Bobot | Penggunaan |
+|-------|-------------|-------|-----------|
+| Headline | 24px | Bold | Judul halaman, header section |
+| Title | 18px | Bold | Judul card, subtitle |
+| Subtitle | 16px | Normal | Teks isi, deskripsi |
+| Caption | 14px | Normal | Teks sekunder, hint |
+| Small | 12px | Normal | Metadata, timestamp |
 
 ### 6. Interactive Elements
 
 **Buttons:**
 - Background: `Colors.cyanAccent`
-- Text: `Colors.black`
+- Teks: `Colors.black`
 - Padding: `EdgeInsets.symmetric(horizontal: 50, vertical: 15)`
-- Border Radius: `10px`
+- Border Radius: 10px
 
 **Text Field:**
 - Fill Color: `#2A2A3A`
-- Border: Cyan with `0.3` opacity
-- Focused Border: Cyan `2px` width
+- Border: cyan dengan opacity 0.3
+- Focused Border: cyan lebar 2px
 - Hint Style: `Colors.white54`
 
 **Slider:**
 - Active Color: `Colors.cyanAccent`
-- Min/Max: 1-10 hours
+- Min/Max: 1-10 jam
 - Divisions: 9
 
 ### 7. Scrollable Layout Pattern
 
 **Semua halaman menggunakan `SingleChildScrollView`:**
 - Mencegah overflow pada layar kecil
-- Smooth scrolling experience
-- Flexible height content
+- Pengalaman scroll yang mulus
+- Tinggi konten fleksibel
 
 **Grid dengan `shrinkWrap: true` + `NeverScrollableScrollPhysics`:**
-- Nested grid dalam SingleChildScrollView
-- Prevents double scroll
+- Grid bersarang dalam SingleChildScrollView
+- Mencegah double scroll
 
 ---
 
-## 🧭 Alur Navigasi
+## Alur Navigasi
 
-```
-[App Start]
-    ↓
-MyApp → MaterialApp
-    ↓
-HomePage (Entry Point)
-    │
-    ├── [AppBar.leading] → BalancePage → pop() → HomePage
-    │                      └─ [Tap] Balance button
-    │
-    ├── [AppBar.actions] → CartPage → pop() → HomePage
-    │                      └─ [Tap] Keranjang button
-    │
-    ├── [Menu[0]] → DetailPCPage → pop() → HomePage
-    │   │                └─ [Tap] Pilih PC
-    │   └─ [Add to Cart] → Cart.addItem() → show SnackBar
-    │
-    ├── [Menu[1]] → OrderFoodPage → pop() → HomePage
-    │   │                └─ [Tap] Snack
-    │   └─ [Pesan] → Cart.addItem() → show SnackBar
-    │
-    ├── [Menu[2]] → ProfilePage → pop() → HomePage
-    │                └─ [Tap] Profil
-    │
-    ├── [Menu[3]] → Placeholder
-    │
-    ├── [Promo Banner] → PromoPage → pop() → HomePage
-    │                    └─ [Tap] Diskon Banner
-    │
-    └── [CartPage Checkout] → Cart.clear() → show SnackBar → pop()
-```
+Alur dimulai dari [App Start] menuju MyApp (MaterialApp), kemudian ke HomePage sebagai entry point. Dari HomePage, terdapat beberapa jalur navigasi:
 
-**Navigation Pattern:**
+- **AppBar.leading** (tombol Saldo, ditekan) → BalancePage → pop() → kembali ke HomePage
+- **AppBar.actions** (tombol Keranjang, ditekan) → CartPage → pop() → kembali ke HomePage
+- **Menu[0]** (Pilih PC, ditekan) → DetailPCPage → pop() → kembali ke HomePage, dengan aksi "Add to Cart" yang memanggil Cart.addItem() dan menampilkan SnackBar
+- **Menu[1]** (Snack, ditekan) → OrderFoodPage → pop() → kembali ke HomePage, dengan aksi "Pesan" yang memanggil Cart.addItem() dan menampilkan SnackBar
+- **Menu[2]** (Profil, ditekan) → ProfilePage → pop() → kembali ke HomePage
+- **Menu[3]** → Placeholder
+- **Promo Banner** (Diskon Banner, ditekan) → PromoPage → pop() → kembali ke HomePage
+- **CartPage Checkout** → Cart.clear() → menampilkan SnackBar → pop()
+
+**Pattern Navigasi:**
+
+Push menggunakan MaterialPageRoute:
 ```dart
-// Push dengan MaterialPageRoute
 Navigator.push(
   context,
   MaterialPageRoute(builder: (context) => TargetPage())
 );
+```
 
-// Pop
+Pop menggunakan:
+```dart
 Navigator.pop(context);
 ```
 
 ---
 
-## 🔄 State Management
+## State Management
 
 ### Cart System (Static Singleton)
 
-```dart
-class CartItem {
-  final String name;
-  final int price;
-  int quantity;
-}
+Sistem Cart didefinisikan melalui dua class:
 
-class Cart {
-  static List<CartItem> items = [];
-  static ValueNotifier<int> totalNotifier = ValueNotifier(0);
-  
-  static void addItem(String name, int price, int quantity)
-    // Update item atau add new
-    // Update totalNotifier.value
-  
-  static int getTotal()
-    // Calculate total: sum(price * quantity)
-  
-  static void clear()
-    // Clear items
-    // Reset totalNotifier.value = 0
-}
-```
+**CartItem** memiliki properti: name (String, final), price (int, final), dan quantity (int)
 
-**Flow:**
-1. User tambah item di DetailPCPage/OrderFoodPage
-2. `Cart.addItem()` dipanggil
-3. `Cart.totalNotifier.value` updated
-4. HomePage `ValueListenableBuilder` rebuild
-5. Keranjang display di AppBar terupdate otomatis
+**Cart** memiliki:
+- `items`: List<CartItem> static
+- `totalNotifier`: ValueNotifier<int> static, diinisialisasi dengan nilai 0
+- `addItem(String name, int price, int quantity)`: method static yang memperbarui item yang sudah ada atau menambahkan item baru, kemudian memperbarui nilai totalNotifier
+- `getTotal()`: method static yang menghitung total dengan formula sum(price * quantity)
+- `clear()`: method static yang mengosongkan items dan mereset totalNotifier.value menjadi 0
+
+**Alur kerja:**
+1. User menambahkan item di DetailPCPage/OrderFoodPage
+2. Method Cart.addItem() dipanggil
+3. Nilai Cart.totalNotifier diperbarui
+4. ValueListenableBuilder pada HomePage melakukan rebuild
+5. Tampilan Keranjang di AppBar otomatis terupdate
 
 ### Page State Management
 
-| Page | Type | State | Purpose |
-|------|------|-------|---------|
-| HomePage | StatefulWidget | (none) | Navigation hub |
-| DetailPCPage | StatefulWidget | selectedPC, hours, promoCode | PC selection & promo |
-| OrderFoodPage | StatefulWidget | _quantities: Map | Item counters |
-| ProfilePage | StatelessWidget | - | Display only |
-| CartPage | StatelessWidget | - | Display + Checkout |
-| BalancePage | StatelessWidget | - | Display only |
-| PromoPage | StatelessWidget | - | Display only |
+| Page | Tipe | State | Fungsi |
+|------|------|-------|--------|
+| HomePage | StatefulWidget | (tidak ada) | Hub navigasi |
+| DetailPCPage | StatefulWidget | selectedPC, hours, promoCode | Pemilihan PC & promo |
+| OrderFoodPage | StatefulWidget | _quantities: Map | Counter item |
+| ProfilePage | StatelessWidget | - | Tampilan saja |
+| CartPage | StatelessWidget | - | Tampilan + Checkout |
+| BalancePage | StatelessWidget | - | Tampilan saja |
+| PromoPage | StatelessWidget | - | Tampilan saja |
 
 ---
 
-## 🎯 Design System Summary
+## Design System Summary
 
 ### Color Palette
-```
-Primary Dark:     #121212 (Background)
-Secondary Dark:   #1E1E26 (Cards)
-Accent:          #00FFFF (Cyan)
-Success:         #4CAF50 (Green)
-Warning:         #FF9800 (Orange)
-Error:           #F44336 (Red)
-Highlight:       #9C27B0 (Purple)
-```
+
+Aplikasi menggunakan kombinasi warna berikut:
+- Primary Dark: `#121212` (Background)
+- Secondary Dark: `#1E1E26` (Cards)
+- Accent: `#00FFFF` (Cyan)
+- Success: `#4CAF50` (Green)
+- Warning: `#FF9800` (Orange)
+- Error: `#F44336` (Red)
+- Highlight: `#9C27B0` (Purple)
 
 ### Typography
-```
-Font Family: Default Material (Roboto)
-Scales: 12px, 14px, 16px, 18px, 24px
-Weights: Normal (400), Medium (500), Bold (700)
-```
+
+Font family menggunakan Default Material (Roboto), dengan skala ukuran 12px, 14px, 16px, 18px, dan 24px, serta bobot Normal (400), Medium (500), dan Bold (700)
 
 ### Spacing
-```
-4px (xs), 8px (s), 16px (m), 20px (l), 24px (xl)
-Consistent throughout all pages
-```
+
+Sistem spacing terdiri dari 4px (xs), 8px (s), 16px (m), 20px (l), dan 24px (xl), digunakan secara konsisten di seluruh halaman
 
 ### Components
-```
-✓ AppBar (transparent, no elevation)
-✓ Container (gradient, border-radius, shadow)
-✓ GridView (responsive 2-column layout)
-✓ GestureDetector (tap feedback)
-✓ ElevatedButton (cyan, high contrast)
-✓ TextField (dark, cyan border)
-✓ Slider (cyan active track)
-✓ SnackBar (2-second duration)
-✓ Image.asset (rounded corners)
-✓ CircleAvatar (member photo)
-✓ ValueListenableBuilder (reactive UI)
-```
+
+Komponen yang digunakan meliputi: AppBar (transparan, tanpa elevation), Container (dengan gradient, border-radius, dan shadow), GridView (layout responsif 2 kolom), GestureDetector (untuk feedback ketukan), ElevatedButton (warna cyan, kontras tinggi), TextField (gelap dengan border cyan), Slider (active track cyan), SnackBar (durasi 2 detik), Image.asset (sudut membulat), CircleAvatar (foto member), dan ValueListenableBuilder (UI reaktif)
 
 ---
 
-## 📱 Widget Dependencies
+## Widget Dependencies
 
-```
-lib/
-├── main.dart (MyApp)
-│   └── imports: home_page.dart
-│
-├── home_page.dart (HomePage - HUB)
-│   ├── imports: detail_pc.dart
-│   ├── imports: order_food.dart
-│   ├── imports: profile_page.dart
-│   ├── imports: promo_page.dart
-│   ├── imports: cart_page.dart
-│   ├── imports: balance_page.dart
-│   └── imports: cart.dart
-│
-├── detail_pc.dart (DetailPCPage)
-│   └── imports: cart.dart
-│
-├── order_food.dart (OrderFoodPage)
-│   └── imports: cart.dart
-│
-├── cart_page.dart (CartPage)
-│   └── imports: cart.dart
-│
-├── cart.dart (Cart - State)
-│   └── imports: foundation.dart (ValueNotifier)
-│
-├── profile_page.dart (ProfilePage)
-│   └── standalone
-│
-├── balance_page.dart (BalancePage)
-│   └── standalone
-│
-└── promo_page.dart (PromoPage)
-    └── standalone
-```
+Struktur dependensi antar file dalam folder `lib/` adalah sebagai berikut:
+
+- **main.dart** (MyApp) — mengimpor home_page.dart
+- **home_page.dart** (HomePage - HUB) — mengimpor detail_pc.dart, order_food.dart, profile_page.dart, promo_page.dart, cart_page.dart, balance_page.dart, dan cart.dart
+- **detail_pc.dart** (DetailPCPage) — mengimpor cart.dart
+- **order_food.dart** (OrderFoodPage) — mengimpor cart.dart
+- **cart_page.dart** (CartPage) — mengimpor cart.dart
+- **cart.dart** (Cart - State) — mengimpor foundation.dart (untuk ValueNotifier)
+- **profile_page.dart** (ProfilePage) — berdiri sendiri (standalone)
+- **balance_page.dart** (BalancePage) — berdiri sendiri (standalone)
+- **promo_page.dart** (PromoPage) — berdiri sendiri (standalone)
 
 ---
 
-## 📊 Diagram Plant UML
+## Diagram Plant UML
 
 Lihat file: `RANCANGAN_DESAIN_APLIKASI.puml`
 
-Untuk generate diagram:
-1. Buka file .puml di Plant UML editor online
-2. Atau gunakan IDE plugin (PlantUML)
+Untuk membuat diagram:
+1. Buka file .puml melalui editor Plant UML online
+2. Atau gunakan plugin IDE (PlantUML)
 
 ---
 

@@ -105,7 +105,12 @@ Proyek ini belum memiliki lisensi resmi. Untuk pertanyaan mengenai penggunaan, s
 ## 👨‍💻 Penulis
 
 **Muhammad Farid Irham**
-- GitHub: [@MFaridIrham](https://github.com/MFaridIrham)
+- GitHub: https://github.com/MFaridIrham
+**Adha Rahmadani Putra**
+- Github https://github.com/BotSaplingAr
+**Azka Dhaffinanda Rahman**
+- Github https://github.com/adhaaptra
+
 
 ## 📞 Kontak & Dukungan
 

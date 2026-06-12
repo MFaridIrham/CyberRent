@@ -49,69 +49,69 @@ Untuk memenuhi standar arsitektur **MVVM** dan **State Management** yang bersih,
 ### 3.1 Stack Teknologi & Dependensi (`pubspec.yaml`)
 ```yaml
 dependencies:
-  flutter:
-    sdk: flutter
-  
-  # Firebase Core & Services
-  firebase_core: ^latest_version
-  firebase_auth: ^latest_version
-  cloud_firestore: ^latest_version
+  flutter:
+    sdk: flutter
+  
+  # Firebase Core & Services
+  firebase_core: ^latest_version
+  firebase_auth: ^latest_version
+  cloud_firestore: ^latest_version
 
-  # State Management
-  provider: ^latest_version
-  3.2 Struktur Folder Proyek (MVVM Pattern)
-  lib/
+  # State Management
+  provider: ^latest_version
+  3.2 Struktur Folder Proyek (MVVM Pattern)
+  lib/
 │
 ├── models/
-│   ├── user_model.dart
-│   ├── pc_model.dart
-│   ├── food_model.dart
-│   └── cart_item_model.dart
+│   ├── user_model.dart
+│   ├── pc_model.dart
+│   ├── food_model.dart
+│   └── cart_item_model.dart
 │
 ├── viewmodels/
-│   ├── auth_viewmodel.dart      # Mengatur alur login/register ke Firebase
-│   ├── rental_viewmodel.dart    # Mengatur logika sewa PC & Snack
-│   └── payment_viewmodel.dart   # Mengatur saldo & transaksi pengguna
+│   ├── auth_viewmodel.dart      # Mengatur alur login/register ke Firebase
+│   ├── rental_viewmodel.dart    # Mengatur logika sewa PC & Snack
+│   └── payment_viewmodel.dart   # Mengatur saldo & transaksi pengguna
 │
 └── views/
-    ├── auth/
-    │   ├── login_page.dart
-    │   └── register_page.dart
-    ├── home_page.dart
-    ├── detail_pc.dart
-    ├── order_food.dart
-    ├── cart_page.dart
-    └── balance_page.dart
-    4. Skema Database (Firebase Firestore)
+    ├── auth/
+    │   ├── login_page.dart
+    │   └── register_page.dart
+    ├── home_page.dart
+    ├── detail_pc.dart
+    ├── order_food.dart
+    ├── cart_page.dart
+    └── balance_page.dart
+    4. Skema Database (Firebase Firestore)
 Berikut rancangan struktur koleksi NoSQL di Cloud Firestore untuk aplikasi CyberRent:
 
 4.1 Koleksi: users
 {
-  "uid": "USER_AUTH_ID_123",
-  "name": "Nama Lengkap Pengguna",
-  "email": "user@example.com",
-  "balance": 100000,
-  "member_level": "Gold",
-  "points": 1500
+  "uid": "USER_AUTH_ID_123",
+  "name": "Nama Lengkap Pengguna",
+  "email": "user@example.com",
+  "balance": 100000,
+  "member_level": "Gold",
+  "points": 1500
 }
 4.2 Koleksi: orders (Keranjang / Riwayat Transaksi)
 {
-  "order_id": "ORDER_67890",
-  "uid": "USER_AUTH_ID_123",
-  "items": [
-    {
-      "name": "Gaming PC Pro (3 jam)",
-      "price": 54000,
-      "quantity": 1
-    },
-    {
-      "name": "Indomie Spesial",
-      "price": 15000,
-      "quantity": 2
-    }
-  ],
-  "total_price": 84000,
-  "timestamp": "2026-06-12T18:00:00Z"
+  "order_id": "ORDER_67890",
+  "uid": "USER_AUTH_ID_123",
+  "items": [
+    {
+      "name": "Gaming PC Pro (3 jam)",
+      "price": 54000,
+      "quantity": 1
+    },
+    {
+      "name": "Indomie Spesial",
+      "price": 15000,
+      "quantity": 2
+    }
+  ],
+  "total_price": 84000,
+  "timestamp": "2026-06-12T18:00:00Z"
 }
 Fitur,Skenario Pengujian,Hasil yang Diharapkan (Success Criteria)
 Auth,Registrasi pengguna baru di halaman Register.,Data terbuat di Firebase Auth & dokumen pengguna baru muncul di Firestore users.
@@ -119,3 +119,5 @@ Persistence,"Keluar dari aplikasi tanpa logout, lalu buka kembali.",Aplikasi lan
 Create CRUD,Memilih PC atau Snack lalu menekan tombol pesan.,Item masuk ke keranjang belanja temporer atau tersimpan langsung di state Firestore.
 Read CRUD,Membuka halaman balance_page.dart.,Riwayat transaksi menampilkan data real-time langsung dari dokumen Firestore milik pengguna.
 Update/Delete,"Menekan tombol ""Checkout"" di keranjang.","Saldo berkurang otomatis di Firebase, keranjang kosong, dan dokumen pesanan bertambah di database."
+
+Parafrase kan teks blok tersebut tanpa mengubah inti nya
