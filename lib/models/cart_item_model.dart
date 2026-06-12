@@ -29,3 +29,5 @@ class CartItemModel {
 
   int get subtotal => price * quantity;
 }
+
+//halo
