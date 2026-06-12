@@ -1,0 +1,265 @@
+@startmindmap
+title UTS_APB - Rancangan Desain Aplikasi (Mind Map)
+
+* **UTS APB**
+  * 🏗️ ARSITEKTUR UI
+    * Entry Point
+      * MyApp (MaterialApp)
+      * Theme: Dark Mode
+      * Home: HomePage
+    * Page Navigation Hub
+      * HomePage (Stateful)
+        * AppBar dengan 2 Action
+        * 7 Content Sections
+      * Detail Pages (Stateful)
+        * DetailPCPage
+        * OrderFoodPage
+      * Display Pages (Stateless)
+        * ProfilePage
+        * CartPage
+        * BalancePage
+        * PromoPage
+    * State Management
+      * Cart (Singleton)
+        * items: List<CartItem>
+        * totalNotifier: ValueNotifier
+      * Page State
+        * HomePage: ValueListener
+        * DetailPCPage: selectedPC, hours, promo
+        * OrderFoodPage: Map quantities
+
+  * 🌳 WIDGET TREE
+    * HomePage Structure
+      * Scaffold
+        * AppBar
+          * leading: Balance Button
+          * actions: Cart Total (ValueListenableBuilder)
+        * Body: SingleChildScrollView
+          * Section 1: Welcome Banner
+          * Section 2: Promo Banner
+          * Section 3: Menu Grid (2x2)
+            * Pilih PC → DetailPCPage
+            * Snack → OrderFoodPage
+            * Profil → ProfilePage
+            * Bantuan
+          * Section 4: Info Features (3x)
+          * Section 5: Spacing
+    * DetailPCPage Structure
+      * Scaffold
+        * Header (Gradient Purple)
+        * PC Options (Column)
+          * PC Basic (Image + Info)
+          * PC Pro (Image + Info)
+          * PC Ultra (Image + Info)
+        * If Selected Show:
+          * Duration Slider (1-10 jam)
+          * Promo Code TextField
+          * Add to Cart Button
+    * OrderFoodPage Structure
+      * Scaffold
+        * Header (Gradient Orange)
+        * Food GridView (2x2)
+          * Indomie Spesial (Image + Counter + Order)
+          * Nasi Goreng (Image + Counter + Order)
+          * Ayam Bakar (Image + Counter + Order)
+          * Es Teh (Image + Counter + Order)
+    * CartPage Structure
+      * Scaffold
+        * Empty Check
+          * If empty: Empty State Message
+          * If full: List Items
+        * Cart Items ListView
+          * Card × N Items
+          * Name + Price + Qty + Subtotal
+        * Bottom Section
+          * Total Display
+          * Checkout Button
+    * ProfilePage Structure
+      * Scaffold
+        * Header Card (Cyan Gradient)
+          * CircleAvatar (member_avatar.png)
+          * Name & Email
+          * Level & Points
+        * Options Grid (2x3)
+          * Login, Register, Edit Profil
+          * Riwayat, Pengaturan, Logout
+    * BalancePage Structure
+      * Scaffold
+        * Balance Card (Gradient)
+          * Saldo: Rp 100.000
+          * Top Up Button
+        * History List
+          * 4 Example Transactions
+          * Title + Date + Amount
+
+  * 🎨 PRINSIP LAYOUTING
+    * Dark Mode Design
+      * Background: #121212
+      * Cards: #1E1E26
+      * Accent: #00FFFF (Cyan)
+      * Text Primary: #FFFFFF
+      * Text Secondary: #FFFFFF70
+    * Gradient Styling
+      * Purple (PC): purpleAccent → blueAccent
+      * Orange (Food): orangeAccent → redAccent
+      * Cyan (Profile): cyanAccent → blueAccent
+      * Direction: Top-Left to Bottom-Right
+    * Responsive Grid
+      * Home Menu: GridView 2x2
+        * crossAxisCount: 2
+        * spacing: 10
+      * Profile Options: GridView 2x3
+      * Food Items: GridView 2x2
+      * Shrinkwrap: true
+      * Physics: NeverScroll
+    * Spacing System
+      * Horizontal Padding: 16px
+      * Vertical Margin: 10-20px
+      * Card Margin: 16px all
+      * Border Radius: 15px
+      * Header Radius: 20px
+      * Image Radius: 10px
+    * Card & Container
+      * Border Radius: 15px
+      * Box Shadow: black26, blur 5
+      * Normal: #1E1E26 bg
+      * Selected: Cyan + border
+      * Hover: Cyan opacity 0.2
+    * Typography
+      * Headline: 24px Bold
+      * Title: 18px Bold
+      * Subtitle: 16px Normal
+      * Caption: 14px Normal
+      * Small: 12px Normal
+    * Interactive Elements
+      * Button
+        * bg: cyanAccent
+        * text: black
+        * padding: h50 v15
+        * radius: 10px
+      * TextField
+        * fill: #2A2A3A
+        * border: cyan 0.3 opacity
+        * focused: cyan 2px
+      * Slider
+        * activeColor: cyan
+        * min-max: 1-10
+      * Notifications
+        * SnackBar: 2 seconds
+
+  * 🧭 ALUR NAVIGASI
+    * Navigation Flow
+      * MyApp
+        * → HomePage (Initial)
+      * HomePage (Hub)
+        * AppBar.leading → BalancePage
+        * AppBar.actions → CartPage
+        * Menu[0] → DetailPCPage
+        * Menu[1] → OrderFoodPage
+        * Menu[2] → ProfilePage
+        * Menu[3] → Placeholder
+        * Promo → PromoPage
+    * Navigation Method
+      * Navigator.push()
+      * MaterialPageRoute
+      * All pages return with pop()
+    * Cart Integration
+      * DetailPCPage
+        * Add Item → Cart.addItem()
+        * Show SnackBar (2s)
+      * OrderFoodPage
+        * Pesan → Cart.addItem()
+        * Show SnackBar (2s)
+      * CartPage
+        * Checkout → Cart.clear()
+        * Show Success (2s)
+        * pop() → HomePage
+
+  * 🔄 STATE MANAGEMENT
+    * Cart Singleton
+      * Properties
+        * items: List<CartItem>
+        * totalNotifier: ValueNotifier<int>
+      * Methods
+        * addItem(name, price, qty)
+          * Check existing item
+          * Update qty or add new
+          * Update notifier
+        * getTotal(): int
+          * Sum all prices × quantities
+        * clear()
+          * Clear items list
+          * Reset notifier to 0
+    * Page States
+      * HomePage
+        * Type: StatefulWidget
+        * Listen: Cart.totalNotifier
+        * Update: Keranjang AppBar
+        * Builder: ValueListenableBuilder
+      * DetailPCPage
+        * Type: StatefulWidget
+        * State: selectedPC, hours, promo
+        * Action: addItem on button
+      * OrderFoodPage
+        * Type: StatefulWidget
+        * State: Map<String, int> quantities
+        * Action: addItem on Pesan
+      * Other Pages
+        * Type: StatelessWidget
+        * No local state
+
+  * 🎯 DESIGN SYSTEM
+    * Color Palette
+      * Primary Dark: #121212
+      * Secondary Dark: #1E1E26
+      * Accent: #00FFFF
+      * Success: #4CAF50
+      * Warning: #FF9800
+      * Error: #F44336
+      * Highlight: #9C27B0
+    * Typography
+      * Font Family: Default Material
+      * Sizes: 12, 14, 16, 18, 24
+      * Weights: 400, 500, 700
+      * Line Height: 1.5
+    * Components
+      * Scaffold
+        * bg: #121212
+        * elevation: 0
+      * AppBar
+        * transparent
+        * no elevation
+        * custom leading/actions
+      * Container
+        * gradient + shadow
+        * border-radius: 15px
+      * GridView
+        * responsive 2-column
+        * auto spacing
+      * Button
+        * elevated + cyan
+        * high contrast
+      * TextField
+        * dark + cyan border
+        * rounded corners
+      * Image
+        * Image.asset()
+        * rounded corners
+        * BoxFit.cover
+      * Avatar
+        * CircleAvatar
+        * AssetImage bg
+    * Spacing
+      * xs: 4px
+      * s: 8px
+      * m: 16px
+      * l: 20px
+      * xl: 24px
+      * Consistent throughout
+    * Shadows
+      * Color: black26
+      * Blur: 5px
+      * Offset: (0, 2)
+      * Applied to cards
+
+@endmindmap

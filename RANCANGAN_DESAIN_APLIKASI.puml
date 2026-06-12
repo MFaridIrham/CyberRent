@@ -1,0 +1,419 @@
+@startuml UTS_APB_Architecture
+
+!define ABSTRACT abstract
+!define STATEFUL stateful
+!define STATELESS stateless
+!define UTILITY utility
+
+title UTS_APB - Rancangan Desain Aplikasi\nArsitektur UI, Layout, dan Widget Tree
+
+skinparam linetype ortho
+skinparam backgroundColor #121212
+skinparam classBackgroundColor #1E1E26
+skinparam classBorderColor #00FFFF
+skinparam classTextColor #FFFFFF
+
+' ============ STATE MANAGEMENT ============
+package "State Management" {
+    class Cart {
+        - items: List<CartItem>
+        - totalNotifier: ValueNotifier<int>
+        + addItem(String, int, int)
+        + getTotal(): int
+        + clear()
+    }
+    
+    class CartItem {
+        - name: String
+        - price: int
+        - quantity: int
+    }
+    
+    Cart "1" *-- "*" CartItem
+}
+
+' ============ APP ENTRY POINT ============
+package "App Entry" {
+    class MyApp {
+        + build(): Widget
+    }
+    
+    class MaterialApp
+}
+
+' ============ PAGE HIERARCHY ============
+package "Page Layer (StatefulWidget)" {
+    class HomePage {
+        - _buildMenuButton(): Widget
+        - _buildInfoItem(): Widget
+        + build(): Widget
+    }
+    
+    class DetailPCPage {
+        - selectedPC: String?
+        - hours: int
+        - promoCode: String
+        - _buildPCOption(): Widget
+        + build(): Widget
+    }
+    
+    class OrderFoodPage {
+        - _quantities: Map<String, int>
+        - _buildFoodItem(): Widget
+        + build(): Widget
+    }
+}
+
+' ============ PAGE LAYER (STATELESS) ============
+package "Page Layer (StatelessWidget)" {
+    class ProfilePage {
+        - _buildProfileOption(): Widget
+        + build(): Widget
+    }
+    
+    class CartPage {
+        + build(): Widget
+    }
+    
+    class BalancePage {
+        - _buildHistoryItem(): Widget
+        + build(): Widget
+    }
+    
+    class PromoPage {
+        + build(): Widget
+    }
+}
+
+' ============ WIDGET COMPOSITION ============
+package "Widget Components" {
+    class Scaffold {
+        + backgroundColor: Color
+        + appBar: AppBar
+        + body: Widget
+    }
+    
+    class AppBar {
+        + title: Text
+        + leading: Widget
+        + actions: List<Widget>
+    }
+    
+    class Container {
+        + decoration: BoxDecoration
+        + padding: EdgeInsets
+        + margin: EdgeInsets
+    }
+    
+    class SingleChildScrollView {
+        + child: Widget
+    }
+    
+    class Column {
+        + children: List<Widget>
+    }
+    
+    class Row {
+        + children: List<Widget>
+    }
+    
+    class GridView {
+        + children: List<Widget>
+    }
+    
+    class GestureDetector {
+        + onTap: VoidCallback
+        + child: Widget
+    }
+    
+    class ElevatedButton {
+        + onPressed: VoidCallback
+        + child: Text
+    }
+    
+    class TextField {
+        + controller: TextEditingController
+        + decoration: InputDecoration
+    }
+    
+    class Slider {
+        + value: double
+        + onChanged: ValueChanged
+    }
+    
+    class ValueListenableBuilder {
+        + valueListenable: ValueNotifier
+        + builder: Widget Function
+    }
+    
+    class Image {
+        + Image.asset(): Constructor
+    }
+    
+    class CircleAvatar {
+        + backgroundImage: ImageProvider
+    }
+    
+    class SnackBar {
+        + content: Widget
+        + duration: Duration
+    }
+}
+
+' ============ LAYOUT PRINCIPLES ============
+package "Layout Structure" {
+    class DarkModeTheme {
+        - backgroundColor: 0xFF121212
+        - accentColor: Colors.cyanAccent
+        - cardColor: 0xFF1E1E26
+    }
+    
+    class GradientStyle {
+        - purple: [purpleAccent, blueAccent]
+        - orange: [orangeAccent, redAccent]
+        - cyan: [cyanAccent, blueAccent]
+    }
+    
+    class ResponiveLayout {
+        - GridView 2x2: Menu buttons
+        - GridView 2x3: Profile options
+        - GridView 2x4: Food items
+        - Column Layout: PC options
+    }
+}
+
+' ============ RELATIONSHIPS ============
+
+MyApp --> HomePage : "initializes"
+HomePage --> DetailPCPage : "navigates"
+HomePage --> OrderFoodPage : "navigates"
+HomePage --> ProfilePage : "navigates"
+HomePage --> PromoPage : "navigates"
+HomePage --> CartPage : "navigates"
+HomePage --> BalancePage : "navigates"
+
+HomePage --> Cart : "uses"
+DetailPCPage --> Cart : "addItem()"
+OrderFoodPage --> Cart : "addItem()"
+
+HomePage --> ValueListenableBuilder : "listens to Cart.totalNotifier"
+
+' ============ WIDGET TREE STRUCTURE ============
+package "HomePage Widget Tree" {
+    note right
+        Scaffold
+        ├── AppBar
+        │   ├── leading: GestureDetector → BalancePage
+        │   └── actions: ValueListenableBuilder
+        │       └── Cart Total Display
+        └── body: SingleChildScrollView
+            └── Column
+                ├── Welcome Section (Container + Gradient)
+                ├── Promo Banner (Container + GestureDetector)
+                ├── Service Menu (GridView 2x2)
+                │   ├── Pilih PC (→ DetailPCPage)
+                │   ├── Snack (→ OrderFoodPage)
+                │   ├── Profil (→ ProfilePage)
+                │   └── Bantuan
+                ├── Info Section (3x _buildInfoItem)
+                └── SizedBox
+    end note
+}
+
+package "DetailPCPage Widget Tree" {
+    note right
+        Scaffold
+        └── body: SingleChildScrollView
+            └── Column
+                ├── Header (Container + Gradient)
+                ├── PC Options List (Column)
+                │   └── _buildPCOption × 3
+                │       └── Row
+                │           ├── Image.asset (pc_basic/pro/ultra)
+                │           ├── Expanded Column (info)
+                │           └── Check Icon (if selected)
+                └── If selectedPC != null:
+                    ├── Duration Slider
+                    ├── Promo Code TextField
+                    └── Add to Cart Button
+    end note
+}
+
+package "OrderFoodPage Widget Tree" {
+    note right
+        Scaffold
+        └── body: SingleChildScrollView
+            └── Column
+                ├── Header (Container + Gradient Orange)
+                └── GridView.builder (2x2)
+                    └── _buildFoodItem × 4
+                        └── Column
+                            ├── Image.asset (food item)
+                            ├── Item Name & Price
+                            ├── Quantity Counter
+                            └── Order Button
+    end note
+}
+
+package "CartPage Widget Tree" {
+    note right
+        Scaffold
+        └── body: Column
+            ├── If Cart.items.isEmpty:
+            │   └── Empty State Message
+            └── Else:
+                ├── ListView (Cart Items)
+                │   └── CartItem Card × N
+                │       └── Row (name, price, qty, subtotal)
+                ├── Divider
+                └── Bottom Section
+                    ├── Total Display
+                    └── Checkout Button
+    end note
+}
+
+package "ProfilePage Widget Tree" {
+    note right
+        Scaffold
+        └── body: SingleChildScrollView
+            └── Column
+                ├── Header Card (Gradient Cyan)
+                │   ├── CircleAvatar (member_avatar.png)
+                │   ├── Name & Email
+                │   └── Level & Points
+                └── Profile Options Grid (2x3)
+                    ├── Login Button
+                    ├── Register Button
+                    ├── Edit Profile
+                    ├── Riwayat
+                    ├── Pengaturan
+                    └── Logout
+    end note
+}
+
+package "BalancePage Widget Tree" {
+    note right
+        Scaffold
+        └── body: SingleChildScrollView
+            └── Column
+                ├── Balance Card (Gradient)
+                │   ├── Saldo: Rp 100.000
+                │   └── Top Up Button
+                ├── Divider
+                └── Transaction History (ListView)
+                    └── _buildHistoryItem × 4
+                        └── Row (title, date, amount)
+    end note
+}
+
+' ============ COLOR SCHEME ============
+package "Design System" {
+    class ColorPalette {
+        - darkBackground: #121212
+        - cardBackground: #1E1E26
+        - accentCyan: #00FFFF
+        - purpleAccent: #9C27B0
+        - orangeAccent: #FF9800
+        - greenAccent: #4CAF50
+    }
+    
+    class TypographySystem {
+        - headline: 24px Bold
+        - subtitle: 18px Normal
+        - body: 16px Normal
+        - caption: 14px Normal
+    }
+    
+    class SpacingSystem {
+        - tiny: 4px
+        - small: 8px
+        - medium: 16px
+        - large: 20px
+        - xlarge: 24px
+    }
+}
+
+' ============ NAVIGATION FLOW ============
+package "Navigation Structure" {
+    note right
+        MyApp → HomePage (Initial Route)
+        
+        HomePage Navigation Hub:
+        ├── AppBar.leading → BalancePage
+        ├── AppBar.actions → CartPage
+        ├── Menu[0] → DetailPCPage
+        ├── Menu[1] → OrderFoodPage
+        ├── Menu[2] → ProfilePage
+        ├── Menu[3] → (Placeholder)
+        ├── Promo Banner → PromoPage
+        └── All pages use Navigator.push()
+           with MaterialPageRoute
+    end note
+}
+
+' ============ STATE FLOW ============
+package "State Management Flow" {
+    note right
+        Cart (Static Singleton)
+        ├── addItem() → Updates totalNotifier
+        ├── getTotal() → Calculates total
+        └── clear() → Resets cart + notifier
+        
+        HomePage (StatefulWidget)
+        ├── Listens to: Cart.totalNotifier
+        └── Updates: Keranjang display in AppBar
+        
+        DetailPCPage (StatefulWidget)
+        ├── State: selectedPC, hours, promoCode
+        └── Action: Adds to Cart via Cart.addItem()
+        
+        OrderFoodPage (StatefulWidget)
+        ├── State: _quantities (Map<String, int>)
+        └── Action: Adds to Cart via Cart.addItem()
+    end note
+}
+
+' ============ RESPONSIVE LAYOUT PRINCIPLES ============
+package "Layout Principles" {
+    note right
+        1. DARK MODE DESIGN
+           - Background: #121212
+           - Cards: #1E1E26 with opacity
+           - Accent: Cyan (#00FFFF)
+        
+        2. SCROLLABLE LAYOUT
+           - All pages: SingleChildScrollView
+           - Prevents overflow on small screens
+           - Smooth user experience
+        
+        3. GRID LAYOUT
+           - Home: GridView 2x2 (Menu)
+           - Profile: GridView 2x3 (Options)
+           - Food: GridView 2x2 (Items)
+           - Responsive with shrinkWrap: true
+        
+        4. SPACING & MARGINS
+           - Horizontal padding: 16px
+           - Vertical spacing: 10-20px
+           - Card margins: 16px all
+        
+        5. GRADIENT STYLING
+           - Purple: PC Rental
+           - Orange: Food/Snack
+           - Cyan: Profile/Balance
+           - Top-Left to Bottom-Right direction
+        
+        6. CARD DESIGN
+           - Border radius: 15px
+           - Box shadow: color: black26
+           - Hover state: Cyan border + opacity
+        
+        7. INTERACTIVE ELEMENTS
+           - GestureDetector for tap areas
+           - ElevatedButton with cyanAccent bg
+           - Slider for duration selection
+           - TextField for promo codes
+    end note
+}
+
+@enduml
